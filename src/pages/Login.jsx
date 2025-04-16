@@ -32,12 +32,11 @@ const Login = () => {
         email,
         password,
       });
-
+      localStorage.setItem("user_id", response.data.user.id);
       localStorage.setItem("token", response.data.token);
       if (response.data.token) {
         navigate("/chats", { replace: true });
       }
-      console.log("Login attempted with:", { email, password });
     } catch (error) {
       setErrors({ submit: "Login failed. Please try again." });
     } finally {

@@ -1,23 +1,39 @@
 import { Send } from "lucide-react";
-import React from "react";
-import { sendMessage } from "../../../api";
-import { getSocket } from "../../../hooks/useWebSocket";
+import React, { useCallback, useEffect } from "react";
+import { useWebSocket } from "../../../hooks/useWebSocket";
+
 const MessageBar = ({ chat }) => {
-  const socket = getSocket();
   const [message, setMessage] = React.useState("");
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!message) return;
-    socket.send(
-      JSON.stringify({
-        type: "chat_message",
-        sent_to: chat.id,
-        message,
-      })
-    );
+  const { sendMessage } = useWebSocket((msg) => {});
+  const messagesEndRef = React.useRef(null);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+  const handleSendMessage = useCallback(
+    (e) => {
+      e.preventDefault();
+      if (!message) return;
+      sendMessage({
+        type: chat.type === "personal" ? "send_message" : "send_group_message",
+        data: {
+          chatID: chat.id,
+          message: message,
+        },
+      });
+      setMessage("");
+    },
+    [sendMessage, message, chat]
+  );
+  useEffect(() => {
+    scrollToBottom();
+  }, [chat]);
   return (
-    <form onSubmit={handleSendMessage} className="mt-4 flex items-center">
+    <form
+      onSubmit={handleSendMessage}
+      ref={messagesEndRef}
+      id="message-bar"
+      className="mt-4 flex items-center"
+    >
       <input
         type="text"
         value={message}

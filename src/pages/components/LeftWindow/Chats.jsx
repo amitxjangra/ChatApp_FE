@@ -1,19 +1,62 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
+import { useWebSocket } from "../../../hooks/useWebSocket";
+const Chats = ({ conversations, selectedChats, setSelectedChats }) => {
+  const { sendMessage, connectionState } = useWebSocket((msg) => {
+    let parsedMessage = JSON.parse(msg);
+    let { type, data, extra_data } = parsedMessage;
+    switch (type) {
+      case "get_chat_data":
+        setSelectedChats((prev) => {
+          let prevChat = prev.find((i) => i.id === extra_data.chatID);
+          if (prevChat) {
+            return prev.map((i) => {
+              if (i.id === extra_data.chatID) {
+                return {
+                  ...i,
+                  chats: data,
+                };
+              }
+              return i;
+            });
+          }
+          return [
+            ...prev,
+            {
+              type: "personal",
+              id: extra_data.chatID,
+              chats: data,
+            },
+          ];
+        });
+        break;
 
-const Chats = ({ chats, selectedChats }) => {
+      default:
+        console.log("Unknown message type:", msg);
+    }
+  });
+  const handleChatSelect = useCallback(
+    (receiver) => {
+      sendMessage({
+        type: "get_chat",
+        data: receiver.id,
+      });
+    },
+    [sendMessage]
+  );
+
   return (
     <>
       <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
         <User className="mr-2" /> Chats
       </h2>
       <div className="space-y-2 mb-6">
-        {chats.map((chat, idx) => (
+        {conversations.map((chat, idx) => (
           <motion.div
-            key={`${chat.username}-${chat.user_id}-${idx}`}
+            key={`${chat.username}-${chat.id}-${idx}`}
             className="flex items-center p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-300"
-            onClick={() => fetchConversation(chat)}
+            onClick={() => handleChatSelect(chat)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -24,9 +67,11 @@ const Chats = ({ chats, selectedChats }) => {
               }
               className="w-10 h-10 rounded-full mr-2"
             />
-            <span className="text-gray-700 flex-1">{chat.username}</span>
-            {selectedChats.some((c) => c.user_id === chat.user_id) && (
-              <span className="text-green-500 mr-2">✓</span>
+            <span className="text-gray-700 flex-1">{chat.full_name}</span>
+            {chat.unreadMessages > 0 && (
+              <span className="bg-green-300 text-xs font-semibold w-[24px] h-[24px] align-center justify-center rounded-full">
+                {chat.unreadMessages}
+              </span>
             )}
             {selectedChats.length === 1 && (
               <motion.button

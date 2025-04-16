@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Chats from "./Chats";
@@ -8,10 +8,11 @@ import UserSearch from "../UserSearch";
 const LeftWindow = ({
   setIsSidebarOpen,
   isSidebarOpen,
-  chats,
   selectedChats,
-  groups,
   setSelectedChats,
+  conversations,
+  groups,
+  setConversations,
 }) => {
   return (
     <>
@@ -37,8 +38,17 @@ const LeftWindow = ({
         {isSidebarOpen && (
           <>
             <UserSearch setSelectedChats={setSelectedChats} />
-            <Chats chats={chats} selectedChats={selectedChats} />
-            <Groups groups={groups} selectedChats={selectedChats} />
+            <Chats
+              conversations={conversations}
+              setConversations={setConversations}
+              selectedChats={selectedChats}
+              setSelectedChats={setSelectedChats}
+            />
+            <Groups
+              groups={groups}
+              selectedChats={selectedChats}
+              setSelectedChats={setSelectedChats}
+            />
           </>
         )}
       </motion.div>

@@ -1,26 +1,15 @@
-import { motion } from "framer-motion";
 import React, { useEffect } from "react";
-import { getMessages } from "../../../api";
+import { motion } from "framer-motion";
 
-const TextMessages = ({ chat }) => {
-  const [messages, setMessages] = React.useState([]);
-  console.log("Chat:", chat);
-  useEffect(() => {
-    getMessages(chat.id)
-      .then((res) => {
-        setMessages(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
-  console.log("messages", messages);
-  return messages.map((message) => {
+const TextMessages = ({ chat = [] }) => {
+  let userId = localStorage.getItem("user_id");
+
+  return chat.map((message) => {
     return (
       <motion.div
-        key={message.id}
+        key={message.sent_time + message.id}
         className={`flex items-end ${
-          message.sent_to !== chat.id ? "justify-start" : "justify-end"
+          message.sent_by === Number(userId) ? "justify-end" : "justify-start"
         }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -28,7 +17,7 @@ const TextMessages = ({ chat }) => {
       >
         <div
           className={`max-w-xs p-3 rounded-lg ${
-            message.sent_to === chat.id
+            message.sent_to == +userId
               ? "bg-blue-500 text-white"
               : "bg-gray-200 text-gray-800"
           }`}

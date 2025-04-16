@@ -1,8 +1,53 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Users } from "lucide-react";
 import { motion } from "framer-motion";
+import { sendMessage } from "../../../api";
+import { useWebSocket } from "../../../hooks/useWebSocket";
 
-const Groups = ({ groups, selectedChats }) => {
+const Groups = ({ groups = [], selectedChats, setSelectedChats }) => {
+  const { sendMessage } = useWebSocket((msg) => {
+    let parsedMessage = JSON.parse(msg);
+    let { type, data } = parsedMessage;
+    switch (type) {
+      case "group_chat_message":
+        setSelectedChats((prev) => {
+          let prevChat = prev.find((i) => i?.group_id === data?.[0]?.group_id);
+          if (prevChat) {
+            return prev.map((i) => {
+              if (i?.group_id === data?.[0]?.group_id) {
+                return {
+                  ...i,
+                  chats: data,
+                };
+              }
+              return i;
+            });
+          }
+          return [
+            ...prev,
+            {
+              type: "group",
+              id: data?.[0]?.group_id,
+              chats: data,
+            },
+          ];
+        });
+        break;
+
+      default:
+        console.log("Unknown message type:", msg);
+    }
+  });
+
+  const handleToggleChat = useCallback(
+    (group) => {
+      sendMessage({
+        type: "get_group_chat",
+        data: group.group_id,
+      });
+    },
+    [sendMessage]
+  );
   return (
     <>
       <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
@@ -11,7 +56,7 @@ const Groups = ({ groups, selectedChats }) => {
       <div className="space-y-2">
         {groups.map((group) => (
           <motion.div
-            key={group.id}
+            key={group.group_id}
             className="flex items-center p-2 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-all duration-300"
             onClick={() => handleToggleChat(group)}
             whileHover={{ scale: 1.02 }}
@@ -22,7 +67,14 @@ const Groups = ({ groups, selectedChats }) => {
               alt={group.name}
               className="w-10 h-10 rounded-full mr-2"
             />
-            <span className="text-gray-700 flex-1">{group.name}</span>
+            <div className="flex-1 flex flex-col">
+              <span className="text-gray-700 flex-1">{group.group_name}</span>
+              {group.last_message && (
+                <span className="text-gray-500 text-sm">
+                  {group.last_message}
+                </span>
+              )}
+            </div>
             {selectedChats.some((c) => c.id === group.id) && (
               <span className="text-green-500 mr-2">✓</span>
             )}

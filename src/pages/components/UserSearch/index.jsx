@@ -69,7 +69,6 @@ export default function UserSearch({ setSelectedChats }) {
                   className="flex items-center space-x-3 bg-[#2b2b2b] p-2 rounded-lg"
                   onClick={() => {
                     setSelectedChats((prev) => [...prev, user]);
-                    console.log(user);
                   }}
                 >
                   <User2 className="w-6 h-6 text-blue-400" />
