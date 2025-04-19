@@ -3,8 +3,15 @@ import React, { useCallback, useEffect } from "react";
 import { useWebSocket } from "../../../hooks/useWebSocket";
 
 const MessageBar = ({ chat }) => {
+  console.log("chat", chat);
   const [message, setMessage] = React.useState("");
-  const { sendMessage } = useWebSocket((msg) => {});
+  const { sendMessage } = useWebSocket((msg) => {
+    let parsedMessage = JSON.parse(msg);
+    let { type, data } = parsedMessage;
+    if (type === "group_message_sent_success") {
+      console.log("data", data);
+    }
+  });
   const messagesEndRef = React.useRef(null);
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -14,7 +21,7 @@ const MessageBar = ({ chat }) => {
       e.preventDefault();
       if (!message) return;
       sendMessage({
-        type: chat.type === "personal" ? "send_message" : "send_group_message",
+        type: chat?.type === "personal" ? "send_message" : "send_group_message",
         data: {
           chatID: chat.id,
           message: message,

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { login } from "../api";
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -184,12 +184,12 @@ const Login = () => {
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Don't have an account?{" "}
-          <a
-            href="#"
+          <Link
+            to={"/register"}
             className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
           >
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

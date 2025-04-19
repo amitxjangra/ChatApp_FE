@@ -9,12 +9,13 @@ const ChatApp = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedChats, setSelectedChats] = useState([]);
   const [groups, setGroups] = useState([]);
-  console.log("conversations", selectedChats);
+  const [friendRequests, setFriendRequests] = useState([]);
   const { sendMessage, connectionState } = useWebSocket((msg) => {
     let parsedMessage = JSON.parse(msg);
     let { type, data } = parsedMessage;
     switch (type) {
       case "get_chats":
+        console.log("data", data);
         setConversations(data);
         break;
       case "get_groups":
@@ -44,13 +45,15 @@ const ChatApp = () => {
         break;
       case "group_chat_message":
         setSelectedChats((prev) => {
-          const group_id = data[0].group_id;
+          console.log("data", prev, data);
+
+          const group_id = data?.[0]?.group_id;
           let newSelectedChats = [...prev];
           let groupExists = newSelectedChats.find(
-            (chat) => chat.group_id === group_id
+            (chat) => chat.id === group_id
           );
           if (groupExists) {
-            groupExists.chats.push(data[0]);
+            groupExists.chats = data;
           } else {
             setGroups((prev) =>
               prev.map((i) => ({
@@ -62,14 +65,29 @@ const ChatApp = () => {
           return newSelectedChats;
         });
         break;
+      case "get_friend_requests":
+        console.log("dataf", data);
+        setFriendRequests((prev) => {
+          console.log("prev", prev);
+          return [...prev, ...data];
+        });
+        break;
+      case "accept_friend_request":
+        alert("You are now friends");
+        setFriendRequests((prev) =>
+          prev.filter((request) => request.id !== data.id)
+        );
+        break;
       default:
         console.log("Unknown message type:", msg);
+        break;
     }
   });
 
   useEffect(() => {
     if (connectionState === "open") {
       sendMessage({ type: "get_chats_and_group" });
+      sendMessage({ type: "get_friend_requests" });
     }
   }, [connectionState]);
   return (
@@ -83,6 +101,7 @@ const ChatApp = () => {
         conversations={conversations}
         groups={groups}
         setConversations={setConversations}
+        friendRequests={friendRequests}
       />
       <RightWindow
         selectedChats={selectedChats}

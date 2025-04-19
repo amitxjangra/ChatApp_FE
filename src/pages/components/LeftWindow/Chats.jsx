@@ -1,8 +1,9 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { useWebSocket } from "../../../hooks/useWebSocket";
 const Chats = ({ conversations, selectedChats, setSelectedChats }) => {
+  const [clickedChat, setClickedChat] = useState({});
   const { sendMessage, connectionState } = useWebSocket((msg) => {
     let parsedMessage = JSON.parse(msg);
     let { type, data, extra_data } = parsedMessage;
@@ -25,19 +26,21 @@ const Chats = ({ conversations, selectedChats, setSelectedChats }) => {
             ...prev,
             {
               type: "personal",
-              id: extra_data.chatID,
+              id: clickedChat.id,
               chats: data,
+              full_name: clickedChat.full_name,
             },
           ];
         });
         break;
 
       default:
-        console.log("Unknown message type:", msg);
+        break;
     }
   });
   const handleChatSelect = useCallback(
     (receiver) => {
+      setClickedChat(receiver);
       sendMessage({
         type: "get_chat",
         data: receiver.id,

@@ -1,27 +1,43 @@
 // components/UserSearch.tsx
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Loader2, User2, SquarePlus } from "lucide-react";
 import { userSeach } from "../../../api";
-
+import { useWebSocket } from "../../../hooks/useWebSocket";
+import { useDebounce } from "../../../hooks/useDebounce";
 export default function UserSearch({ setSelectedChats }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const handleSearch = async () => {
-    if (!query.trim()) return;
-
-    setLoading(true);
-    try {
-      const res = await userSeach(encodeURIComponent(query));
-      setResults(res.data || []);
-    } catch (err) {
-      console.error("Search error:", err);
-      setResults([]);
-    } finally {
-      setLoading(false);
+  const { sendMessage } = useWebSocket((msg) => {
+    let parsedMessage = JSON.parse(msg);
+    let { type, data } = parsedMessage;
+    switch (type) {
+      case "search_user":
+        setResults(data);
+        break;
+      default:
+        break;
     }
+  });
+  const searchUser = useCallback((query) => {
+    sendMessage(
+      JSON.stringify({
+        type: "search_user",
+        data: query,
+      })
+    );
+  }, []);
+
+  const debouncedSearchUser = useDebounce(searchUser, 500);
+
+  const handleUserType = (val) => {
+    setQuery(val);
+    debouncedSearchUser(val);
+  };
+
+  const sendFriendRequest = (user) => {
+    sendMessage(JSON.stringify({ type: "send_friend_request", data: user }));
   };
 
   return (
@@ -38,13 +54,10 @@ export default function UserSearch({ setSelectedChats }) {
             type="text"
             placeholder="Enter username or email"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleUserType(e.target.value)}
             className="flex-1 bg-gray-300 px-2 py-1 rounded-lg focus:outline-none placeholder:text-gray-500"
           />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors"
-          >
+          <button className="bg-blue-600 hover:bg-blue-700 p-2 rounded-lg transition-colors">
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
@@ -67,9 +80,6 @@ export default function UserSearch({ setSelectedChats }) {
                   key={user.id}
                   whileHover={{ scale: 1.02 }}
                   className="flex items-center space-x-3 bg-[#2b2b2b] p-2 rounded-lg"
-                  onClick={() => {
-                    setSelectedChats((prev) => [...prev, user]);
-                  }}
                 >
                   <User2 className="w-6 h-6 text-blue-400" />
                   <div>
@@ -80,7 +90,7 @@ export default function UserSearch({ setSelectedChats }) {
                   </div>
                   <SquarePlus
                     className="w-6 h-6 ml-auto text-blue-400 hover:cursor-pointer"
-                    onClick={() => sendFriendRequest()}
+                    onClick={() => sendFriendRequest(user)}
                   />
                 </motion.div>
               ))}

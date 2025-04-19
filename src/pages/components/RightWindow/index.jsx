@@ -29,11 +29,14 @@ const RightWindow = ({ selectedChats = [], chats = [], setSelectedChats }) => {
                     transition={{ duration: 0.5 }}
                     className="flex flex-col h-full"
                   >
-                    <ChatHeader chat={chat} />
+                    <ChatHeader
+                      chat={chat}
+                      setSelectedChats={setSelectedChats}
+                    />
                     <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50 rounded-lg">
                       <TextMessages chat={chat.chats} />
                     </div>
-                    <MessageBar />
+                    <MessageBar chat={chat} />
                   </motion.div>
                 </AnimatePresence>
               </div>
@@ -51,7 +54,10 @@ const RightWindow = ({ selectedChats = [], chats = [], setSelectedChats }) => {
                     exit={{ x: 300, opacity: 0 }}
                     transition={{ duration: 0.5 }}
                   >
-                    <ChatHeader chat={chat} />
+                    <ChatHeader
+                      chat={chat}
+                      setSelectedChats={setSelectedChats}
+                    />
                     <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50 rounded-lg">
                       <TextMessages chat={chat.chats} />
                     </div>

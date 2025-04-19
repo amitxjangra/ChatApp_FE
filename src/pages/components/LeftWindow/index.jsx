@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Chats from "./Chats";
 import Groups from "./Groups";
 import UserSearch from "../UserSearch";
+import FriendRequests from "../FriendRequest";
 
 const LeftWindow = ({
   setIsSidebarOpen,
@@ -13,6 +14,7 @@ const LeftWindow = ({
   conversations,
   groups,
   setConversations,
+  friendRequests,
 }) => {
   return (
     <>
@@ -49,6 +51,7 @@ const LeftWindow = ({
               selectedChats={selectedChats}
               setSelectedChats={setSelectedChats}
             />
+            <FriendRequests friendRequests={friendRequests} />
           </>
         )}
       </motion.div>

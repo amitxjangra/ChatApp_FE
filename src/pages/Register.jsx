@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Lock } from "lucide-react";
 import { registerUser } from "../api";
+import { Link } from "react-router-dom";
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
     full_name: "",
@@ -214,6 +215,15 @@ export default function RegisterForm() {
             Register
           </motion.button>
         </motion.form>
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already registered?{" "}
+          <Link
+            to={"/"}
+            className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+          >
+            Sign in
+          </Link>
+        </p>
       </motion.div>
     </div>
   );
