@@ -1,3 +1,7 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+.btn-p {
+  border-radius: 6px;
+  width: min-content;
+  padding: 0.5rem 1rem;
+  color: white;
+  cursor: pointer;
+}

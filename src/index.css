@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 /* Add this to your global CSS file */
-
 body {
   @apply bg-gradient-to-br from-indigo-50 to-pink-50;
 }

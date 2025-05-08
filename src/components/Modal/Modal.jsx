@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import ModalPortal from "./ModalPortal";
 
-export default function Modal({ isOpen, onClose, children }) {
+export default function Modal({ isOpen, onClose, children, list }) {
   return (
     <ModalPortal>
       <AnimatePresence>
@@ -11,7 +11,7 @@ export default function Modal({ isOpen, onClose, children }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            // onClick={onClose}
           >
             <motion.div
               className="bg-white rounded-2xl p-6 shadow-xl relative min-w-[300px]"
@@ -19,7 +19,7 @@ export default function Modal({ isOpen, onClose, children }) {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 50, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              onClick={(e) => e.stopPropagation()} // prevent modal close on content click
+              // onClick={(e) => e.stopPropagation()}
             >
               <button
                 className="absolute top-2 right-2 text-gray-400 hover:text-black"

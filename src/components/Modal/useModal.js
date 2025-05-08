@@ -1,5 +1,4 @@
-import { useModalContext } from "./ModalProvider";
-
-export default function useModal() {
-  return useModalContext();
-}
+import { useContext } from "react";
+import { ModalContext } from "./ModalProvider";
+const useModal = () => useContext(ModalContext);
+export default useModal;

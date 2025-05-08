@@ -15,7 +15,6 @@ const ChatApp = () => {
     let { type, data } = parsedMessage;
     switch (type) {
       case "get_chats":
-        console.log("data", data);
         setConversations(data);
         break;
       case "get_groups":
@@ -45,8 +44,6 @@ const ChatApp = () => {
         break;
       case "group_chat_message":
         setSelectedChats((prev) => {
-          console.log("data", prev, data);
-
           const group_id = data?.[0]?.group_id;
           let newSelectedChats = [...prev];
           let groupExists = newSelectedChats.find(
@@ -66,9 +63,7 @@ const ChatApp = () => {
         });
         break;
       case "get_friend_requests":
-        console.log("dataf", data);
         setFriendRequests((prev) => {
-          console.log("prev", prev);
           return [...prev, ...data];
         });
         break;
