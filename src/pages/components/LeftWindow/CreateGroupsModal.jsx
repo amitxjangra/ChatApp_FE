@@ -1,21 +1,35 @@
 import React, { useState, useCallback } from "react";
 import MultiSelect from "../../../components/MultiSelect";
 import { useWebSocket } from "../../../hooks/useWebSocket";
+import { useMemo } from "react";
 
-const CreateGroupsModal = ({ initialData, closeModal }) => {
+const CreateGroupsModal = ({ closeModal, conversations }) => {
   const [newGroupData, setNewGroupData] = useState({
-    group_name: initialData.group_name || "",
-    description: initialData.description || "",
-    group_members: initialData.group_members || [],
+    group_name: "",
+    description: "",
+    group_members: [],
   });
 
   const { sendMessage } = useWebSocket();
+
   const handleCreateGroup = useCallback(() => {
     sendMessage({
       type: "create_group",
       data: newGroupData,
     });
   }, [newGroupData]);
+
+  const groupMembers = useMemo(() => {
+    return conversations.map((i) => ({ id: i.id, name: i.username })) ?? [];
+  }, [conversations]);
+
+  const handleMemberSelect = useCallback((e) => {
+    console.log("handleMemberSelect", e);
+    setNewGroupData((prev) => ({
+      ...prev,
+      group_members: e.map((i) => i.id) ?? [],
+    }));
+  }, []);
 
   return (
     <div className="flex flex-col gap-4 w-[500px]">
@@ -47,7 +61,7 @@ const CreateGroupsModal = ({ initialData, closeModal }) => {
       <div className="flex flex-col gap-2">
         <h1 className="text-lg font-semibold">Group Members</h1>
         <div className="flex flex-row gap-2">
-          <MultiSelect />
+          <MultiSelect options={groupMembers} onChange={handleMemberSelect} />
         </div>
       </div>
       <div className="flex flex-row gap-2">

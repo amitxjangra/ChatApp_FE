@@ -1,21 +1,8 @@
 import { ChevronDown, ChevronUp, X } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 
-const MultiSelect = ({
-  options = [
-    { id: 1, name: "Option 1" },
-    { id: 2, name: "Option 2" },
-    { id: 3, name: "Option 3" },
-    { id: 4, name: "Option 4" },
-    { id: 5, name: "Option 5" },
-    { id: 6, name: "Option 6" },
-    { id: 7, name: "Option 7" },
-    { id: 8, name: "Option 8" },
-    { id: 9, name: "Option 9" },
-    { id: 10, name: "Option 10" },
-  ],
-}) => {
-  const [selected, setSelected] = useState([{ id: 1, name: "Option 1" }]);
+const MultiSelect = ({ options, onChange }) => {
+  const [selected, setSelected] = useState([]);
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef();
@@ -30,9 +17,7 @@ const MultiSelect = ({
       ) {
         setOpen(false);
       } else {
-        if (!open) {
-          setOpen(true);
-        }
+        if (!open) setOpen(true);
       }
     }
 
@@ -40,13 +25,25 @@ const MultiSelect = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [open]);
+
+  const handleSelect = (item) => {
+    const newSelected = [...selected, { id: item.id, name: item.name }];
+    setSelected(newSelected);
+    if (onChange) onChange(newSelected);
+  };
+
+  const handleRemove = (id) => {
+    const newSelected = selected.filter((i) => i.id !== id);
+    setSelected(newSelected);
+    if (onChange) onChange(newSelected);
+  };
 
   return (
     <div className="relative">
       <div
         ref={ref}
-        className=" flex flex-row gap-2 border border-gray-300 rounded-md p-2"
+        className="flex flex-row gap-2 border border-gray-300 rounded-md p-2"
       >
         <div className="flex flex-row gap-2 flex-wrap">
           {selected.map((item) => (
@@ -54,12 +51,10 @@ const MultiSelect = ({
               key={item.id}
               className="flex flex-row gap-2 bg-gray-100 rounded-md p-2"
             >
-              {item.name}{" "}
+              {item.name}
               <X
                 className="cursor-pointer"
-                onClick={() =>
-                  setSelected(selected.filter((i) => i.id !== item.id))
-                }
+                onClick={() => handleRemove(item.id)}
               />
             </div>
           ))}
@@ -68,9 +63,7 @@ const MultiSelect = ({
             className="border-none rounded-md p-2 outline-none bg-gray-100"
             value={search}
             onChange={(e) => {
-              if (!open) {
-                setOpen(true);
-              }
+              if (!open) setOpen(true);
               setSearch(e.target.value);
             }}
             placeholder="Search"
@@ -84,44 +77,33 @@ const MultiSelect = ({
           )}
         </div>
       </div>
+
       {open && (
         <div
           ref={dropdown}
-          className="absolute top-100% left-0 w-full h-max rounded-md z-10 overflow-y-auto max-h-[200px]"
+          className="absolute top-full left-0 w-full h-max rounded-md z-10 overflow-y-auto max-h-[200px] bg-white shadow"
         >
           {options.map((item) => {
-            if (selected.find((i) => i.id === item.id)) {
-              return <React.Fragment key={item.id}></React.Fragment>;
-            }
-            if (
-              search &&
-              item.name.toLowerCase().includes(search.toLowerCase())
-            ) {
+            const isAlreadySelected = selected.find((i) => i.id === item.id);
+            if (isAlreadySelected) return null;
+
+            const matchesSearch = item.name
+              .toLowerCase()
+              .includes(search.toLowerCase());
+
+            if (!search || matchesSearch) {
               return (
                 <div
                   key={item.id}
-                  className="p-2 border- border-gray-300 bg-gray-100  cursor-pointer hover:bg-gray-200"
-                  onClick={() =>
-                    setSelected([...selected, { id: item.id, name: item.name }])
-                  }
+                  className="p-2 border-b border-gray-200 bg-gray-100 cursor-pointer hover:bg-gray-200"
+                  onClick={() => handleSelect(item)}
                 >
                   {item.name}
                 </div>
               );
             }
-            if (!search) {
-              return (
-                <div
-                  key={item.id}
-                  className="p-2 border- border-gray-300 bg-gray-100  cursor-pointer hover:bg-gray-200"
-                  onClick={() =>
-                    setSelected([...selected, { id: item.id, name: item.name }])
-                  }
-                >
-                  {item.name}
-                </div>
-              );
-            }
+
+            return null;
           })}
         </div>
       )}

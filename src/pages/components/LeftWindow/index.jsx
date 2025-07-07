@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, Settings, X } from "lucide-react";
 import Chats from "./Chats";
 import Groups from "./Groups";
 import UserSearch from "../UserSearch";
 import FriendRequests from "../FriendRequest";
+import { logout } from "../../../utils/functions";
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 const LeftWindow = ({
   setIsSidebarOpen,
@@ -16,6 +19,15 @@ const LeftWindow = ({
   setConversations,
   friendRequests,
 }) => {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const navigate = useNavigate();
+  const menuRef = useRef(null);
+
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/", { replace: true });
+  }, []);
+
   return (
     <>
       <motion.button
@@ -26,6 +38,47 @@ const LeftWindow = ({
       >
         {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
       </motion.button>
+
+      {/* Settings Button */}
+      <motion.button
+        className="absolute bottom-4 left-4 z-10 bg-white/80 p-2 rounded-full shadow-md hover:bg-gray-200 hover:cursor-pointer transition-all duration-300"
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsSettingsOpen((prev) => !prev)}
+      >
+        {isSettingsOpen ? <X /> : <Settings />}
+      </motion.button>
+
+      {/* Settings Popup */}
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-20 left-4 z-20 bg-white shadow-xl rounded-lg p-4 w-48"
+          >
+            <ul className="space-y-2 text-sm">
+              <li className="hover:bg-gray-100 p-2 rounded cursor-pointer">
+                Profile
+              </li>
+              <li className="hover:bg-gray-100 p-2 rounded cursor-pointer">
+                Settings
+              </li>
+              <li
+                className="hover:bg-gray-100 p-2 rounded cursor-pointer"
+                onClick={handleLogout}
+              >
+                Logout
+              </li>
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
       <motion.div
         className={`bg-white/90 shadow-2xl border-r border-gray-200 p-4 flex flex-col transition-all duration-300 ease-in-out ${
           isSidebarOpen ? "w-164 md:w-1/3" : "w-0 md:w-0"
@@ -48,6 +101,7 @@ const LeftWindow = ({
             />
             <Groups
               groups={groups}
+              conversations={conversations}
               selectedChats={selectedChats}
               setSelectedChats={setSelectedChats}
             />

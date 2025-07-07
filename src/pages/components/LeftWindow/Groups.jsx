@@ -7,7 +7,12 @@ import useModal from "../../../components/Modal/useModal";
 import CreateGroupsModal from "./CreateGroupsModal";
 import GroupSettingModal from "./GroupSettingModal";
 
-const Groups = ({ groups = [], selectedChats, setSelectedChats }) => {
+const Groups = ({
+  groups = [],
+  selectedChats,
+  setSelectedChats,
+  conversations,
+}) => {
   const [selectedGroup, setSelectedGroup] = useState({});
   const { openModal, closeModal } = useModal();
 
@@ -67,7 +72,10 @@ const Groups = ({ groups = [], selectedChats, setSelectedChats }) => {
           onClick={() =>
             openModal(
               "group-modal",
-              <CreateGroupsModal closeModal={closeModal} initialData={{}} />
+              <CreateGroupsModal
+                closeModal={closeModal}
+                conversations={conversations}
+              />
             )
           }
         >
