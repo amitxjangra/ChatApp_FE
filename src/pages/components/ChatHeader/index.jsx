@@ -1,21 +1,18 @@
-import React, { use } from "react";
+import { memo } from "react";
 
 const ChatHeader = ({ chat = {}, setSelectedChats }) => {
   const removeChat = () => {
-    setSelectedChats((prev) => prev.filter((c) => c.id !== chat.id));
+    setSelectedChats((prev) => prev.filter((c) => c._id !== chat._id));
   };
-  console.log("chat", chat);
 
   return (
     <div className="flex items-center mb-4 border-b pb-2">
       <img
-        src={chat.type === "group" ? chat.group_avatar : chat.avatar}
-        alt={chat.type === "group" ? chat.group_name : chat.name}
+        src={`https://api.dicebear.com/6.x/initials/svg?seed=${chat.full_name}`}
+        alt={chat.full_name}
         className="w-12 h-12 rounded-full mr-3"
       />
-      <h2 className="text-xl font-semibold text-gray-800">
-        {chat.type === "group" ? chat.group_name : chat.full_name}
-      </h2>
+      <h2 className="text-xl font-semibold text-gray-800">{chat.full_name}</h2>
       <button
         className="ml-auto p-2 hover:bg-gray-100 rounded-full transition-all duration-200 hover:cursor-pointer group"
         onClick={removeChat}
@@ -37,4 +34,4 @@ const ChatHeader = ({ chat = {}, setSelectedChats }) => {
   );
 };
 
-export default ChatHeader;
+export default memo(ChatHeader);

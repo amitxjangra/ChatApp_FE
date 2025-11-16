@@ -1,22 +1,24 @@
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../api";
+
+import useSocket from "../hooks/useWebSocket";
+
+import { login } from "../controllers/auth";
+
 const Login = () => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("123456");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { connectSocket } = useSocket();
 
   const validateForm = () => {
     const newErrors = {};
-    if (!email) newErrors.email = "Email is required";
-    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
+    if (!email) newErrors.email = "Email or Username is required";
     if (!password) newErrors.password = "Password is required";
     else if (password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -28,17 +30,13 @@ const Login = () => {
 
     setIsLoading(true);
     try {
-      const response = await login({
-        email,
-        password,
-      });
-      localStorage.setItem("user_id", response.data.user.id);
-      localStorage.setItem("token", response.data.token);
-      if (response.data.token) {
-        navigate("/chats", { replace: true });
-      }
+      const response = await login(email, password);
+      localStorage.setItem("user_id", response.user.id);
+      connectSocket();
+      navigate("/chats", { replace: true });
     } catch (error) {
       setErrors({ submit: "Login failed. Please try again." });
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +64,7 @@ const Login = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700 mb-2 transition-all duration-300 group-focus-within:text-indigo-600"
             >
-              Email Address
+              Email Address or Username
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors duration-300">

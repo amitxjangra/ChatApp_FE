@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import MultiSelect from "../../../components/MultiSelect";
-import { useWebSocket } from "../../../hooks/useWebSocket";
+//import { useWebSocket } from "../../../hooks/useWebSocket";
 import { useMemo } from "react";
 
 const CreateGroupsModal = ({ closeModal, conversations }) => {
@@ -10,7 +10,17 @@ const CreateGroupsModal = ({ closeModal, conversations }) => {
     group_members: [],
   });
 
-  const { sendMessage } = useWebSocket();
+  const { sendMessage } = useWebSocket((msg) => {
+    let parsedMessage = JSON.parse(msg);
+    let { type, data } = parsedMessage;
+    switch (type) {
+      case "get_groups":
+        closeModal();
+        break;
+      default:
+        break;
+    }
+  });
 
   const handleCreateGroup = useCallback(() => {
     sendMessage({

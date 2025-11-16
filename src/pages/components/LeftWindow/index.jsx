@@ -2,31 +2,54 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Settings, X } from "lucide-react";
 import Chats from "./Chats";
-import Groups from "./Groups";
 import UserSearch from "../UserSearch";
 import FriendRequests from "../FriendRequest";
-import { logout } from "../../../utils/functions";
+import { logoutUser } from "../../../utils/functions";
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import useSocket from "../../../hooks/useWebSocket";
+import { useSelector } from "react-redux";
 
 const LeftWindow = ({
   setIsSidebarOpen,
   isSidebarOpen,
   selectedChats,
   setSelectedChats,
-  conversations,
-  groups,
-  setConversations,
-  friendRequests,
+  friendsList,
+  setFriendsList,
 }) => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [friendRequests, setFriendRequests] = useState([]);
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const userProfile = useSelector(({ user }) => user.value.user);
+  const { socket, connected, disconnectSocket } = useSocket();
+
+  useEffect(() => {
+    if (userProfile?.friends.length) {
+      setFriendsList(userProfile.friends);
+    }
+    if (userProfile?.requests.length) {
+      setFriendRequests(userProfile.requests);
+    }
+  }, [userProfile, setFriendsList]);
 
   const handleLogout = useCallback(() => {
-    logout();
+    logoutUser();
+    disconnectSocket();
     navigate("/", { replace: true });
-  }, []);
+  }, [disconnectSocket, navigate]);
+
+  useEffect(() => {
+    if (connected) {
+      socket.on("friendRequest", (p) => {
+        setFriendRequests((prev) => [...prev, p]);
+      });
+      socket.on("requestAccepted", (msg) => {
+        setFriendsList((prev) => [...prev, msg.user]);
+      });
+    }
+  }, [socket, connected, setFriendsList]);
 
   return (
     <>
@@ -35,6 +58,7 @@ const LeftWindow = ({
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
+        aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
       </motion.button>
@@ -45,6 +69,7 @@ const LeftWindow = ({
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsSettingsOpen((prev) => !prev)}
+        aria-label={isSettingsOpen ? "Close settings" : "Open settings"}
       >
         {isSettingsOpen ? <X /> : <Settings />}
       </motion.button>
@@ -81,7 +106,7 @@ const LeftWindow = ({
       {/* Sidebar */}
       <motion.div
         className={`bg-white/90 shadow-2xl border-r border-gray-200 p-4 flex flex-col transition-all duration-300 ease-in-out ${
-          isSidebarOpen ? "w-164 md:w-1/3" : "w-0 md:w-0"
+          isSidebarOpen ? "w-full md:w-1/3" : "w-0"
         }`}
         initial={{ x: -300, opacity: 0 }}
         animate={{
@@ -94,18 +119,14 @@ const LeftWindow = ({
           <>
             <UserSearch setSelectedChats={setSelectedChats} />
             <Chats
-              conversations={conversations}
-              setConversations={setConversations}
-              selectedChats={selectedChats}
+              chatsList={friendsList}
               setSelectedChats={setSelectedChats}
             />
-            <Groups
-              groups={groups}
-              conversations={conversations}
-              selectedChats={selectedChats}
-              setSelectedChats={setSelectedChats}
+            <FriendRequests
+              friendRequests={friendRequests}
+              setFriendRequests={setFriendRequests}
+              setFriendsList={setFriendsList}
             />
-            <FriendRequests friendRequests={friendRequests} />
           </>
         )}
       </motion.div>

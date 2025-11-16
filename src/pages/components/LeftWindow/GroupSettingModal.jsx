@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { Pencil, Plus, Trash } from "lucide-react";
-import { useWebSocket } from "../../../hooks/useWebSocket";
+//import { useWebSocket } from "../../../hooks/useWebSocket";
 import useModal from "../../../components/Modal/useModal";
 import InviteMember from "./InviteMember";
 
@@ -59,7 +59,7 @@ const GroupSettingModal = ({ group = {}, closeModal }) => {
           <h1 className="text-lg font-semibold">Group Name</h1>
           <input
             id="group_name"
-            name="group_name2"
+            name="group_name"
             className="border border-gray-300 rounded-md p-2 w-full self-center"
             type="text"
             value={groupData.group_name}
@@ -111,16 +111,19 @@ const GroupSettingModal = ({ group = {}, closeModal }) => {
                     {member.full_name}
                   </div>
                 </div>
-                <select className="flex-1 rounded-md p-2 ml-auto max-w-40 h-10 outline-none border-none bg-gray-300">
+                <select
+                  className="flex-1 rounded-md p-2 ml-auto max-w-40 h-10 outline-none border-none bg-gray-300"
+                  value={member.rights}
+                >
                   <option
                     className="text-gray-500 hover:bg-gray-100 h-10"
-                    value="admin"
+                    value="ADMIN"
                   >
                     Admin
                   </option>
                   <option
                     className="text-gray-500 hover:bg-gray-100 h-10"
-                    value="member"
+                    value="MEMBER"
                   >
                     Member
                   </option>

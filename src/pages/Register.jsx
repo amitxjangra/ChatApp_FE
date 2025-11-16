@@ -1,9 +1,7 @@
-// RegisterForm.jsx
 import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { User, Mail, Lock } from "lucide-react";
-import { registerUser } from "../api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { register } from "../controllers/auth";
+
 export default function RegisterForm() {
   const [formData, setFormData] = useState({
     full_name: "",
@@ -11,9 +9,9 @@ export default function RegisterForm() {
     email: "",
     password: "",
   });
-
   const [errors, setErrors] = useState({});
-  const [shake, setShake] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,191 +38,218 @@ export default function RegisterForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const foundErrors = validate();
+    if (Object.keys(foundErrors).length > 0) {
+      setErrors(foundErrors);
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const foundErrors = validate();
-      if (Object.keys(foundErrors).length > 0) {
-        setErrors(foundErrors);
-        triggerShake();
-      } else {
-        await registerUser(formData);
-        alert("Registered successfully!");
-        setFormData({
-          full_name: "",
-          username: "",
-          email: "",
-          password: "",
-        });
-        setErrors({});
-      }
+      await register(formData);
+      navigate("/", { replace: true });
     } catch (error) {
-      console.log(error);
+      setErrors({ submit: "Registration failed. Please try again." });
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const triggerShake = () => {
-    setShake(true);
-    setTimeout(() => setShake(false), 500); // Reset shake after animation
-  };
-
-  const shakeAnimation = shake ? { x: [-10, 10, -10, 10, 0] } : {};
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-gray-900 via-gray-800 to-gray-900 p-4 overflow-hidden relative">
-      {/* Background Animated Blobs */}
-      <motion.div
-        className="absolute w-96 h-96 bg-purple-700/20 rounded-full top-1/4 left-1/3 blur-3xl"
-        animate={{ scale: [1, 1.2, 1], rotate: [0, 360, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className="absolute w-72 h-72 bg-pink-600/20 rounded-full bottom-1/3 right-1/4 blur-2xl"
-        animate={{ scale: [1, 1.3, 1], rotate: [0, -360, 0] }}
-        transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-      />
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 sm:p-8 transform transition-all hover:shadow-2xl">
+        <div className="relative">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-8">
+            Create Account
+          </h2>
+          <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full"></div>
+        </div>
 
-      {/* Form Container */}
-      <motion.div
-        className="bg-gradient-to-br from-gray-800 to-gray-900 backdrop-blur-md border border-white/10 rounded-2xl shadow-2xl p-8 w-full max-w-md relative z-10"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <motion.h2
-          className="text-3xl font-bold text-white text-center mb-8"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          Create Account
-        </motion.h2>
+        {errors.submit && (
+          <div className="mb-6 p-3 bg-red-100 text-red-700 text-sm rounded-lg text-center animate-fade-in">
+            {errors.submit}
+          </div>
+        )}
 
-        <motion.form
-          onSubmit={handleSubmit}
-          className="space-y-6"
-          animate={shakeAnimation}
-        >
-          {/* Full Name */}
-          <div className="relative">
-            <User className="absolute left-3 top-3 text-purple-400" size={20} />
-            <input
-              name="full_name"
-              placeholder="Full Name"
-              value={formData.full_name}
-              onChange={handleChange}
-              className={`w-full pl-10 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                errors.full_name
-                  ? "focus:ring-red-500 border-red-500"
-                  : "focus:ring-purple-500 border-gray-700"
-              } border transition`}
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="relative group">
+            <label
+              htmlFor="full_name"
+              className="block text-sm font-medium text-gray-700 mb-2 transition-all duration-300 group-focus-within:text-indigo-600"
+            >
+              Full Name
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors duration-300">
+                👤
+              </span>
+              <input
+                type="text"
+                id="full_name"
+                name="full_name"
+                value={formData.full_name}
+                onChange={handleChange}
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 ${
+                  errors.full_name
+                    ? "border-red-500"
+                    : "border-gray-200 group-hover:border-indigo-300"
+                } rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all duration-300 shadow-sm`}
+                placeholder="Enter your full name"
+                disabled={isLoading}
+              />
+            </div>
             {errors.full_name && (
-              <motion.p
-                className="text-red-400 text-sm mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
+              <p className="mt-2 text-xs text-red-600 animate-fade-in">
                 {errors.full_name}
-              </motion.p>
+              </p>
             )}
           </div>
 
-          {/* Username */}
-          <div className="relative">
-            <User className="absolute left-3 top-3 text-purple-400" size={20} />
-            <input
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              className={`w-full pl-10 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                errors.username
-                  ? "focus:ring-red-500 border-red-500"
-                  : "focus:ring-purple-500 border-gray-700"
-              } border transition`}
-            />
+          <div className="relative group">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-gray-700 mb-2 transition-all duration-300 group-focus-within:text-indigo-600"
+            >
+              Username
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors duration-300">
+                👤
+              </span>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 ${
+                  errors.username
+                    ? "border-red-500"
+                    : "border-gray-200 group-hover:border-indigo-300"
+                } rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all duration-300 shadow-sm`}
+                placeholder="Enter your username"
+                disabled={isLoading}
+              />
+            </div>
             {errors.username && (
-              <motion.p
-                className="text-red-400 text-sm mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
+              <p className="mt-2 text-xs text-red-600 animate-fade-in">
                 {errors.username}
-              </motion.p>
+              </p>
             )}
           </div>
 
-          {/* Email */}
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 text-pink-400" size={20} />
-            <input
-              name="email"
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`w-full pl-10 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                errors.email
-                  ? "focus:ring-red-500 border-red-500"
-                  : "focus:ring-pink-500 border-gray-700"
-              } border transition`}
-            />
+          <div className="relative group">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-2 transition-all duration-300 group-focus-within:text-indigo-600"
+            >
+              Email Address
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors duration-300">
+                ✉️
+              </span>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 ${
+                  errors.email
+                    ? "border-red-500"
+                    : "border-gray-200 group-hover:border-indigo-300"
+                } rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all duration-300 shadow-sm`}
+                placeholder="Enter your email"
+                disabled={isLoading}
+              />
+            </div>
             {errors.email && (
-              <motion.p
-                className="text-red-400 text-sm mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
+              <p className="mt-2 text-xs text-red-600 animate-fade-in">
                 {errors.email}
-              </motion.p>
+              </p>
             )}
           </div>
 
-          {/* Password */}
-          <div className="relative">
-            <Lock className="absolute left-3 top-3 text-pink-400" size={20} />
-            <input
-              name="password"
-              type="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`w-full pl-10 py-2 rounded-xl bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 ${
-                errors.password
-                  ? "focus:ring-red-500 border-red-500"
-                  : "focus:ring-pink-500 border-gray-700"
-              } border transition`}
-            />
+          <div className="relative group">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700 mb-2 transition-all duration-300 group-focus-within:text-indigo-600"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-600 transition-colors duration-300">
+                🔒
+              </span>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border-2 ${
+                  errors.password
+                    ? "border-red-500"
+                    : "border-gray-200 group-hover:border-indigo-300"
+                } rounded-xl focus:ring-4 focus:ring-indigo-200 focus:border-indigo-500 outline-none transition-all duration-300 shadow-sm`}
+                placeholder="Enter your password"
+                disabled={isLoading}
+              />
+            </div>
             {errors.password && (
-              <motion.p
-                className="text-red-400 text-sm mt-1"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
+              <p className="mt-2 text-xs text-red-600 animate-fade-in">
                 {errors.password}
-              </motion.p>
+              </p>
             )}
           </div>
 
-          {/* Submit Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+          <button
             type="submit"
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-xl shadow-lg transition"
+            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-4 rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50 transition-all duration-300 disabled:opacity-75 disabled:cursor-not-allowed transform hover:-translate-y-1"
+            disabled={isLoading}
           >
-            Register
-          </motion.button>
-        </motion.form>
+            {isLoading ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Registering...
+              </span>
+            ) : (
+              "Register"
+            )}
+          </button>
+        </form>
+
         <p className="mt-6 text-center text-sm text-gray-600">
-          Already registered?{" "}
+          Already have an account?{" "}
           <Link
-            to={"/"}
+            to="/"
             className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
           >
-            Sign in
+            Sign In
           </Link>
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

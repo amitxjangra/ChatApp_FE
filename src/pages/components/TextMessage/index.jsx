@@ -1,15 +1,21 @@
-import React, { useEffect } from "react";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
 
-const TextMessages = ({ chat = [] }) => {
-  let userId = localStorage.getItem("user_id");
+const TextMessages = ({ chat = [], members = [] }) => {
+  const userId = localStorage.getItem("user_id");
+  const userProfile = useSelector(({ user }) => user.value.user);
 
   return chat.map((message) => {
+    const sender =
+      message.senderId === userId
+        ? userProfile
+        : members.find((member) => member.userId === message.senderId);
+
     return (
       <motion.div
-        key={message.sent_time + message.id}
+        key={message.sentAt + message.senderId}
         className={`flex items-end ${
-          message.sent_by === Number(userId) ? "justify-end" : "justify-start"
+          message.senderId === userId ? "justify-end" : "justify-start"
         }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -17,14 +23,15 @@ const TextMessages = ({ chat = [] }) => {
       >
         <div
           className={`max-w-xs p-3 rounded-lg ${
-            message.sent_to == +userId
+            message.senderId === userId
               ? "bg-blue-500 text-white"
               : "bg-gray-200 text-gray-800"
           }`}
         >
+          <p className="font-bold">{sender?.full_name}</p>
           <p>{message.message}</p>
           <span className="text-xs opacity-70">
-            {Date(message.sent_time, "dd-MM-YYY")}
+            {new Date(message.sentAt).toLocaleTimeString()}
           </span>
         </div>
       </motion.div>

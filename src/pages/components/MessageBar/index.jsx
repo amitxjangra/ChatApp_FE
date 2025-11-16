@@ -1,43 +1,32 @@
 import { Send } from "lucide-react";
-import React, { useCallback, useEffect } from "react";
-import { useWebSocket } from "../../../hooks/useWebSocket";
+import React, { useCallback } from "react";
+import useSocket from "../../../hooks/useWebSocket";
 
-const MessageBar = ({ chat }) => {
-  console.log("chat", chat);
+const MessageBar = ({ chat, setSelectedChats }) => {
+  const { socket } = useSocket();
   const [message, setMessage] = React.useState("");
-  const { sendMessage } = useWebSocket((msg) => {
-    let parsedMessage = JSON.parse(msg);
-    let { type, data } = parsedMessage;
-    if (type === "group_message_sent_success") {
-      console.log("data", data);
-    }
-  });
-  const messagesEndRef = React.useRef(null);
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const userId = localStorage.getItem("user_id");
+
   const handleSendMessage = useCallback(
     (e) => {
       e.preventDefault();
-      if (!message) return;
-      sendMessage({
-        type: chat?.type === "personal" ? "send_message" : "send_group_message",
-        data: {
-          chatID: chat.id,
-          message: message,
-        },
-      });
+      if (message.trim() === "") return;
+
+      const messageData = {
+        target: chat._id.toString(),
+        message,
+        sender: userId,
+      };
+
+      socket.emit("sendPersonalMessage", messageData);
       setMessage("");
     },
-    [sendMessage, message, chat]
+    [socket, chat._id, message, userId]
   );
-  useEffect(() => {
-    scrollToBottom();
-  }, [chat]);
+
   return (
     <form
       onSubmit={handleSendMessage}
-      ref={messagesEndRef}
       id="message-bar"
       className="mt-4 flex items-center"
     >
@@ -47,6 +36,11 @@ const MessageBar = ({ chat }) => {
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type a message..."
         className="flex-1 p-3 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            handleSendMessage(e);
+          }
+        }}
       />
       <button
         type="submit"

@@ -1,44 +1,23 @@
-// src/utils/socketManager.js
-let socketInstance = null;
-let reconnectInterval = null;
-const messageListeners = new Set();
+import { io } from "socket.io-client";
 
-export function getSocket() {
-  const token = localStorage.getItem("token");
+let socket = null;
 
-  if (!socketInstance || socketInstance.readyState === WebSocket.CLOSED) {
-    socketInstance = new WebSocket(`ws://localhost:5000?token=${token}`);
-
-    socketInstance.onopen = () => {
-      console.log("WebSocket connected!");
-      clearInterval(reconnectInterval);
-    };
-
-    socketInstance.onmessage = (event) => {
-      messageListeners.forEach((cb) => cb(event));
-    };
-
-    socketInstance.onclose = () => {
-      console.log("WebSocket disconnected");
-      socketInstance = null;
-      reconnectInterval = setInterval(() => {
-        console.log("Attempting to reconnect...");
-        getSocket();
-      }, 5000);
-    };
-
-    socketInstance.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+export const createSocket = () => {
+  if (!socket) {
+    socket = io("http://localhost:3000", {
+      withCredentials: true,
+      autoConnect: false,
+    });
+    socket.connect();
   }
+  return socket;
+};
 
-  return socketInstance;
-}
+export const getSocket = () => socket;
 
-export function addMessageListener(listener) {
-  messageListeners.add(listener);
-}
-
-export function removeMessageListener(listener) {
-  messageListeners.delete(listener);
-}
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+};
