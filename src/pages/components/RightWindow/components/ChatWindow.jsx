@@ -23,9 +23,7 @@ const ChatWindow = ({ chat }) => {
   useEffect(() => {
     if (connected) {
       socket.on("receiveMessage", (p) => {
-        if (p.groupId === chat._id) {
-          setChats((prev) => [...prev, p]);
-        }
+        setChats((prev) => ({ ...prev, chats: [...(prev.chats ?? []), p] }));
       });
     }
   }, [chat._id, connected, socket]);
@@ -36,18 +34,20 @@ const ChatWindow = ({ chat }) => {
 
   return (
     <motion.div
-      className="bg-white shadow-2xl p-6 rounded-lg flex flex-col h-full"
+      className="bg-white shadow-2xl px-6 rounded-lg flex flex-col h-full relative"
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
+      id={`chat-window-${chat._id}`}
     >
       <ChatHeader chat={chat} />
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 bg-gray-50 rounded-lg">
+      <div className="overflow-y-auto space-y-2 p-4 bg-gray-50 rounded-lg">
         <TextMessages chat={chats.chats} members={chat.members} />
         <div ref={messageEndRef} />
       </div>
-      <MessageBar chat={chat} />
+
+      <MessageBar chat={chat} setChats={setChats} />
     </motion.div>
   );
 };

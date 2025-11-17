@@ -14,8 +14,8 @@ const TextMessages = ({ chat = [], members = [] }) => {
     return (
       <motion.div
         key={message.sentAt + message.senderId}
-        className={`flex items-end ${
-          message.senderId === userId ? "justify-end" : "justify-start"
+        className={`flex items-end  ${
+          message.sender === userId ? "justify-end" : "justify-start"
         }`}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -23,14 +23,18 @@ const TextMessages = ({ chat = [], members = [] }) => {
       >
         <div
           className={`max-w-xs p-3 rounded-lg ${
-            message.senderId === userId
+            message.sender === userId
               ? "bg-blue-500 text-white"
               : "bg-gray-200 text-gray-800"
           }`}
         >
-          <p className="font-bold">{sender?.full_name}</p>
+          {/* <p className="font-bold">{sender?.full_name}</p> */}
           <p>{message.message}</p>
-          <span className="text-xs opacity-70">
+          <span
+            className={`text-xs opacity-70 ${
+              message.sender === userId ? "float-right" : "float-left"
+            }`}
+          >
             {new Date(message.sentAt).toLocaleTimeString()}
           </span>
         </div>

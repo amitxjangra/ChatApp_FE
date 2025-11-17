@@ -2,7 +2,7 @@ import { Send } from "lucide-react";
 import React, { useCallback } from "react";
 import useSocket from "../../../hooks/useWebSocket";
 
-const MessageBar = ({ chat, setSelectedChats }) => {
+const MessageBar = ({ chat, setChats }) => {
   const { socket } = useSocket();
   const [message, setMessage] = React.useState("");
   const userId = localStorage.getItem("user_id");
@@ -19,16 +19,23 @@ const MessageBar = ({ chat, setSelectedChats }) => {
       };
 
       socket.emit("sendPersonalMessage", messageData);
+      setChats((prev) => ({
+        ...prev,
+        chats: [
+          ...(prev.chats ?? []),
+          { ...messageData, sentAt: new Date().toISOString() },
+        ],
+      }));
       setMessage("");
     },
-    [socket, chat._id, message, userId]
+    [message, chat._id, userId, socket, setChats]
   );
 
   return (
     <form
       onSubmit={handleSendMessage}
       id="message-bar"
-      className="mt-4 flex items-center"
+      className=" flex items-center sticky bottom-0 bg-white py-4"
     >
       <input
         type="text"

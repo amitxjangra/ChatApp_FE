@@ -11,9 +11,10 @@ const SocketRestart = () => {
         const res = await axios.get("http://localhost:3000/auth/me", {
           withCredentials: true,
         });
+        console.log("Auth check response:", res.data);
 
-        if (res.data?.authenticated && res.data?.user?._id) {
-          const userId = res.data.user._id;
+        if (res?.authenticated && res?.user?._id) {
+          const userId = res.user._id;
 
           // Connect the socket
           const socket = connectSocket();

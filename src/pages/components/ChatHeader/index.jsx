@@ -6,13 +6,15 @@ const ChatHeader = ({ chat = {}, setSelectedChats }) => {
   };
 
   return (
-    <div className="flex items-center mb-4 border-b pb-2">
+    <div className="flex items-center mb-4 border-b pb-2 sticky top-0 bg-white z-10 pt-2">
       <img
-        src={`https://api.dicebear.com/6.x/initials/svg?seed=${chat.full_name}`}
-        alt={chat.full_name}
+        src={`https://api.dicebear.com/6.x/initials/svg?seed=${chat.user.full_name}`}
+        alt={chat.user.full_name}
         className="w-12 h-12 rounded-full mr-3"
       />
-      <h2 className="text-xl font-semibold text-gray-800">{chat.full_name}</h2>
+      <h2 className="text-xl font-semibold text-gray-800">
+        {chat.user.full_name}
+      </h2>
       <button
         className="ml-auto p-2 hover:bg-gray-100 rounded-full transition-all duration-200 hover:cursor-pointer group"
         onClick={removeChat}

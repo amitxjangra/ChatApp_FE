@@ -3,15 +3,24 @@ import React from "react";
 import ChatWindow from "./components/ChatWindow";
 
 const RightWindow = ({ selectedChats = [] }) => {
+  console.log("RightWindow selectedChats", selectedChats);
+  const getColumnsClass = (count) => {
+    return `grid-cols-${count}`;
+  };
   return (
     <div className="w-full p-4 overflow-hidden flex flex-col">
       <div className="flex-1 overflow-auto">
         {selectedChats.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            className={`grid gap-4 h-full ${getColumnsClass(
+              selectedChats.length
+            )}`}
+          >
             <AnimatePresence>
               {selectedChats.map((chat) => (
                 <motion.div
                   key={chat.id}
+                  className="h-full"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
